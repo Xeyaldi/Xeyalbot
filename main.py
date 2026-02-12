@@ -1,8 +1,7 @@
 import uuid
-from pyrogram import Client, types
+from pyrogram import Client, filters, types
 
 # --- MƏLUMAT BAZASI (Müvəqqəti) ---
-# Mesajları yadda saxlamaq üçün lazım olan funksiyalar
 db = {}
 
 def save_msg(msg_id, target, msg):
@@ -26,7 +25,6 @@ async def secret_inline(c: Client, inline_query: types.InlineQuery):
     if " " not in query:
         return
     
-    # Target və mesajı ayırırıq
     try:
         target, secret_text = query.split(" ", 1)
     except ValueError:
@@ -36,12 +34,12 @@ async def secret_inline(c: Client, inline_query: types.InlineQuery):
     save_msg(msg_id, target, secret_text)
 
     results = [
-        types.InputInlineQueryResultArticle(
+        types.InlineQueryResultArticle(
             id=msg_id,
             title=f"🔒 Mesaj: {target}",
             description="Gizli göndərmək üçün toxunun",
             input_message_content=types.InputMessageText(
-                text=f"🎁 {target}, sizin üçün gizli mesaj var!"
+                message_text=f"🎁 {target}, sizin üçün gizli mesaj var!"
             ),
             reply_markup=types.InlineKeyboardMarkup([
                 [types.InlineKeyboardButton(
@@ -56,6 +54,9 @@ async def secret_inline(c: Client, inline_query: types.InlineQuery):
 # --- CALLBACK HANDLER ---
 @bot.on_callback_query()
 async def read_secret(c: Client, cb: types.CallbackQuery):
+    if not cb.data.startswith("read_"):
+        return
+
     msg_id = cb.data.split("_")[1]
     data = get_msg(msg_id)
     
@@ -66,14 +67,13 @@ async def read_secret(c: Client, cb: types.CallbackQuery):
     user_id = str(cb.from_user.id)
     username = (cb.from_user.username or "").lower()
     
-    # Yalnız hədəf şəxs oxuya bilsin
     if user_id == target or username == target:
         await cb.answer(f"🔒 Gizli Mesajınız:\n\n{data['msg']}", show_alert=True)
     else:
         await cb.answer(f"❌ Bu mesaj yalnız {data['to']} üçündür!", show_alert=True)
 
 # --- START HANDLER ---
-@bot.on_message(types.Filters.command("start"))
+@bot.on_message(filters.command("start"))
 async def start(c: Client, m: types.Message):
     text = (
         "👋 **Salam! Mən Gizli Mesaj botuyam.**\n\n"
@@ -101,4 +101,3 @@ async def start(c: Client, m: types.Message):
 
 if __name__ == "__main__":
     bot.run()
-    
