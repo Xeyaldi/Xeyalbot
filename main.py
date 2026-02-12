@@ -42,8 +42,8 @@ bot = Client(
     files_directory=SESSION_DIR
 )
 
-# --- INLINE HANDLER ---
-@bot.on(types.InlineQuery)
+# --- INLINE HANDLER (Düzəldildi) ---
+@bot.onInlineQuery()
 async def secret_inline(c, inline_query):
     query = inline_query.query.strip()
     if " " not in query:
@@ -71,9 +71,12 @@ async def secret_inline(c, inline_query):
     await c.answerInlineQuery(inline_query.id, results, cache_time=1)
 
 
-# --- CALLBACK HANDLER ---
-@bot.on(types.CallbackQuery)
+# --- CALLBACK HANDLER (Düzəldildi) ---
+@bot.onCallbackQuery()
 async def read_secret(c, cb):
+    if not cb.payload.data.decode().startswith("read_"):
+        return
+
     msg_id = cb.payload.data.decode().split("_")[1]
     data = get_msg(msg_id)
     if not data:
@@ -88,9 +91,10 @@ async def read_secret(c, cb):
         await cb.answer(f"❌ Bu mesaj yalnız {target} üçündür!", show_alert=True)
 
 
-# --- START HANDLER ---
-@bot.on(types.Message)
+# --- START HANDLER (Düzəldildi) ---
+@bot.onMessage()
 async def start(c, m):
+    # m.text yoxlaması burada mütləqdir
     if not m.text or not m.text.startswith("/start"):
         return
 
