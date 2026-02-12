@@ -2,7 +2,6 @@ import os
 import uuid
 import json
 from pytdbot import Client, types
-from pytdbot.handlers import InlineQueryHandler, CallbackQueryHandler, MessageHandler
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -34,7 +33,6 @@ def get_msg(msg_id):
     except:
         return None
 
-# --- BOT YARADILIR ---
 bot = Client(
     api_id=int(os.getenv("API_ID")),
     api_hash=str(os.getenv("API_HASH")),
@@ -44,7 +42,8 @@ bot = Client(
 )
 
 # --- INLINE HANDLER ---
-async def secret_inline(c, inline_query):
+@bot.onInlineQuery()
+async def secret_inline(c: Client, inline_query: types.InlineQuery):
     query = inline_query.query.strip()
     if " " not in query:
         return
@@ -70,9 +69,9 @@ async def secret_inline(c, inline_query):
     ]
     await c.answerInlineQuery(inline_query.id, results, cache_time=1)
 
-
 # --- CALLBACK HANDLER ---
-async def read_secret(c, cb):
+@bot.onCallbackQuery()
+async def read_secret(c: Client, cb: types.CallbackQuery):
     msg_id = cb.payload.data.decode().split("_")[1]
     data = get_msg(msg_id)
     if not data:
@@ -86,9 +85,9 @@ async def read_secret(c, cb):
     else:
         await cb.answer(f"❌ Bu mesaj yalnız {target} üçündür!", show_alert=True)
 
-
 # --- START HANDLER ---
-async def start(c, m):
+@bot.onMessage()
+async def start(c: Client, m: types.Message):
     if not m.text or not m.text.startswith("/start"):
         return
 
@@ -125,10 +124,4 @@ async def start(c, m):
         reply_markup=types.ReplyMarkupInlineKeyboard(keyboard)
     )
 
-# --- HANDLER-LARI BOT-A ƏLAVƏ ET ---
-bot.add_handler(InlineQueryHandler(secret_inline))
-bot.add_handler(CallbackQueryHandler(read_secret))
-bot.add_handler(MessageHandler(start))
-
-# --- RUN BOT ---
 bot.run()
