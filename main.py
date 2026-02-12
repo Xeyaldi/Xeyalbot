@@ -1,3 +1,6 @@
+# --- BOTUN TƏYİNİ ---
+bot = Client("session_name", api_id=API_ID, api_hash="API_HASH", bot_token="TOKEN")
+
 # --- INLINE HANDLER ---
 @bot.on_inline_query()  # Dəyişdirildi
 async def secret_inline(c: Client, inline_query: types.InlineQuery):
@@ -79,4 +82,4 @@ async def start(c: Client, m: types.Message):
         text=text,
         parse_mode="markdown",
         reply_markup=types.ReplyMarkupInlineKeyboard(keyboard)
-    )
+    )   
