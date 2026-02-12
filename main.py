@@ -1,7 +1,7 @@
 import os
 import uuid
 import json
-from pytdbot import Client, types, filters
+from pytdbot import Client, types
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -80,6 +80,10 @@ async def read_secret(c, cb):
 
 
 async def start(c, m):
+    # sadəcə /start mesajlarını işlət
+    if not m.text or not m.text.startswith("/start"):
+        return
+
     text = (
         "👋 **Salam! Mən Gizli Mesaj botuyam.**\n\n"
         "🛠 **İstifadə qaydası:**\n"
@@ -119,9 +123,9 @@ bot = Client(
     api_id=int(os.getenv("API_ID")),
     api_hash=str(os.getenv("API_HASH")),
     token=str(os.getenv("BOT_TOKEN")),
-    inline_handlers=[secret_inline],          # Inline handler
-    callback_handlers=[read_secret],          # Callback handler
-    message_handlers=[(start, filters.command("start"))],  # Start handler
+    inline_handlers=[secret_inline],
+    callback_handlers=[read_secret],
+    message_handlers=[start],  # filters.command silindi
     database_encryption_key="XeyalBotAcar123",
     files_directory=SESSION_DIR
 )
