@@ -33,20 +33,11 @@ def get_msg(msg_id):
     except:
         return None
 
-bot = Client(
-    api_id=int(os.getenv("API_ID")),
-    api_hash=str(os.getenv("API_HASH")),
-    token=str(os.getenv("BOT_TOKEN")),
-    database_encryption_key="XeyalBotAcar123",
-    files_directory=SESSION_DIR
-)
-
-# --- INLINE HANDLER ---
+# --- HANDLER FUNKSİYALARI ---
 async def secret_inline(c, inline_query):
     query = inline_query.query.strip()
     if " " not in query:
         return
-
     target, secret_text = query.split(" ", 1)
     msg_id = str(uuid.uuid4())[:8]
     save_msg(msg_id, target, secret_text)
@@ -71,27 +62,23 @@ async def secret_inline(c, inline_query):
             ])
         )
     ]
-
     await c.answerInlineQuery(inline_query.id, results, cache_time=1)
 
-# --- CALLBACK HANDLER ---
+
 async def read_secret(c, cb):
     msg_id = cb.payload.data.decode().split("_")[1]
     data = get_msg(msg_id)
-
     if not data:
         return await cb.answer("❌ Mesaj tapılmadı.", show_alert=True)
-
     target = data["to"]
     user_id = str(cb.from_user.id)
     username = (cb.from_user.username or "").lower()
-
     if user_id == target or username == target:
         await cb.answer(f"🔒 Gizli Mesajınız:\n\n{data['msg']}", show_alert=True)
     else:
         await cb.answer(f"❌ Bu mesaj yalnız {target} üçündür!", show_alert=True)
 
-# --- START HANDLER ---
+
 async def start(c, m):
     text = (
         "👋 **Salam! Mən Gizli Mesaj botuyam.**\n\n"
@@ -126,10 +113,18 @@ async def start(c, m):
         reply_markup=types.ReplyMarkupInlineKeyboard(keyboard)
     )
 
-# --- HANDLER-LARI QEYD ET ---
-bot.on(types.InlineQuery, secret_inline)
-bot.on(types.CallbackQuery, read_secret)
-bot.on(types.Message, start, filters.command("start"))
+
+# --- CLIENT YARADILIR HANDLER-LAR İLƏ ---
+bot = Client(
+    api_id=int(os.getenv("API_ID")),
+    api_hash=str(os.getenv("API_HASH")),
+    token=str(os.getenv("BOT_TOKEN")),
+    inline_handlers=[secret_inline],          # Inline handler
+    callback_handlers=[read_secret],          # Callback handler
+    message_handlers=[(start, filters.command("start"))],  # Start handler
+    database_encryption_key="XeyalBotAcar123",
+    files_directory=SESSION_DIR
+)
 
 # --- RUN ---
 bot.run()
