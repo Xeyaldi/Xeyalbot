@@ -2,7 +2,6 @@ import os
 import uuid
 import json
 from pytdbot import Client, types, filters
-from pytdbot.handlers import InlineQueryHandler, CallbackQueryHandler, MessageHandler
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -43,7 +42,7 @@ bot = Client(
 )
 
 # --- INLINE HANDLER ---
-async def secret_inline(c: Client, inline_query):
+async def secret_inline(c, inline_query):
     query = inline_query.query.strip()
     if " " not in query:
         return
@@ -76,7 +75,7 @@ async def secret_inline(c: Client, inline_query):
     await c.answerInlineQuery(inline_query.id, results, cache_time=1)
 
 # --- CALLBACK HANDLER ---
-async def read_secret(c: Client, cb: types.CallbackQuery):
+async def read_secret(c, cb):
     msg_id = cb.payload.data.decode().split("_")[1]
     data = get_msg(msg_id)
 
@@ -93,7 +92,7 @@ async def read_secret(c: Client, cb: types.CallbackQuery):
         await cb.answer(f"❌ Bu mesaj yalnız {target} üçündür!", show_alert=True)
 
 # --- START HANDLER ---
-async def start(c: Client, m: types.Message):
+async def start(c, m):
     text = (
         "👋 **Salam! Mən Gizli Mesaj botuyam.**\n\n"
         "🛠 **İstifadə qaydası:**\n"
@@ -127,10 +126,10 @@ async def start(c: Client, m: types.Message):
         reply_markup=types.ReplyMarkupInlineKeyboard(keyboard)
     )
 
-# --- HANDLER-LARI BOT-UN İÇİNƏ ƏLAVƏ ET ---
-bot.add_handler(InlineQueryHandler(secret_inline))
-bot.add_handler(CallbackQueryHandler(read_secret))
-bot.add_handler(MessageHandler(start, filters.command("start")))
+# --- HANDLER-LARI QEYD ET ---
+bot.on(types.InlineQuery, secret_inline)
+bot.on(types.CallbackQuery, read_secret)
+bot.on(types.Message, start, filters.command("start"))
 
 # --- RUN ---
 bot.run()
