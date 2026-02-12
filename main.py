@@ -4,8 +4,8 @@ from pyrogram import Client, types
 # --- BOTUN TƏYİNİ ---
 bot = Client(
     "session_name",
-    api_id=39651803,
-    api_hash="fbff5841dd52657f1be545a3a5049155",
+    api_id=34628590,
+    api_hash="78a65ef180771575a50fcd350f027e9d",
     bot_token="8272572253:AA63JFKyR41X4cBosnZ68VW8dbg1tvVyVmw"
 )
 
