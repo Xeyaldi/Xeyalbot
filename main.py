@@ -26,10 +26,12 @@ def get_msg(msg_id):
     except: return None
 
 # Botu başladırıq
+# database_encryption_key əlavə edildi ki, Heroku-da 'database_encryption_key must be str' xətası verməsin.
 bot = Client(
     api_id=int(os.getenv("API_ID")),
     api_hash=os.getenv("API_HASH"),
-    token=os.getenv("BOT_TOKEN")
+    token=os.getenv("BOT_TOKEN"),
+    database_encryption_key="XeyalBotAcar123" 
 )
 
 # --- İNLINE HİSSƏSİ (Gizli mesaj yazmaq üçün) ---
@@ -38,6 +40,7 @@ async def secret_inline(c: Client, inline_query: types.InlineQuery):
     query = inline_query.query.strip()
     if " " not in query: return
 
+    # Format: @username mesaj və ya 12345678 mesaj
     target, secret_text = query.split(" ", 1)
     msg_id = str(uuid.uuid4())[:8]
     
@@ -47,7 +50,7 @@ async def secret_inline(c: Client, inline_query: types.InlineQuery):
         types.InputInlineQueryResultArticle(
             id=msg_id,
             title=f"🔒 Mesaj: {target}",
-            description="Buna bassanız mesaj gizli qruplaşdırılacaq.",
+            description="Buna bassanız mesaj gizli göndəriləcək.",
             input_message_content=types.InputMessageText(
                 text=types.FormattedText(text=f"🎁 {target}, sizin üçün gizli mesaj var!")
             ),
@@ -68,11 +71,12 @@ async def read_secret(c: Client, cb: types.CallbackQuery):
     data = get_msg(msg_id)
     
     if not data:
-        return await cb.answer("❌ Mesaj tapılmadı.", show_alert=True)
+        return await cb.answer("❌ Mesaj tapılmadı və ya silinib.", show_alert=True)
 
     target = data["to"]
     is_allowed = False
     
+    # Həm ID-ni, həm də Username-i yoxlayırıq
     if str(cb.from_user.id) == target: 
         is_allowed = True
     elif cb.from_user.username and cb.from_user.username.lower() == target: 
@@ -83,24 +87,31 @@ async def read_secret(c: Client, cb: types.CallbackQuery):
     else:
         await cb.answer(f"❌ Bu mesaj yalnız {target} üçündür!", show_alert=True)
 
-# --- START HİSSƏSİ (Botu başladanda görünən) ---
+# --- START HİSSƏSİ (Botu başladanda düymələrlə görünən) ---
 @bot.on_message(filters.command("start"))
 async def start(c: Client, m: types.Message):
     text = (
         "👋 **Salam! Mən Gizli Mesaj botuyam.**\n\n"
         "🛠 **İstifadə qaydası:**\n"
-        "Yazı yerində mənim adımı yazın, ardınca **@username** və **mesajı** qeyd edin.\n\n"
+        "Hər hansı bir çatda mənim adımı yazın, ardınca **@username** (və ya ID) və **mesajı** qeyd edin.\n\n"
         "**Nümunə:**\n"
         "`@Xeyalbot @istifadeci salam`"
     )
 
     keyboard = [
         [
-            types.InlineKeyboardButton(text="🧑‍💻Developer", type=types.InlineKeyboardButtonTypeUrl("https://t.me/kullaniciadidi")),
-            types.InlineKeyboardButton(text="📢 Məlumat Kanal", type=types.InlineKeyboardButtonTypeUrl("https://t.me/Ht_bots"))
+            types.InlineKeyboardButton(text="🧑‍💻 Developer", type=types.InlineKeyboardButtonTypeUrl("https://t.me/kullaniciadidi")),
+            types.InlineKeyboardButton(text="📢Bildiriş kanalı", type=types.InlineKeyboardButtonTypeUrl("https://t.me/Ht_bots"))
+        ],
+        [
+            types.InlineKeyboardButton(text="🆘 Kömək qrupu", type=types.InlineKeyboardButtonTypeUrl("https://t.me/ht_bots_chat"))
         ]
     ]
 
-    await m.reply_text(text, parse_mode="markdown", reply_markup=types.ReplyMarkupInlineKeyboard(keyboard))
+    await m.reply_text(
+        text, 
+        parse_mode="markdown", 
+        reply_markup=types.ReplyMarkupInlineKeyboard(keyboard)
+    )
 
 bot.run()
