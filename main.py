@@ -1,5 +1,50 @@
+import os
+import uuid
+import json
+from pytdbot import Client, types
+from dotenv import load_dotenv
+
+load_dotenv()
+
+SESSION_DIR = "bot_sessions"
+if not os.path.exists(SESSION_DIR):
+    os.makedirs(SESSION_DIR)
+
+DB_FILE = os.path.join(SESSION_DIR, "secrets.json")
+
+def save_msg(msg_id, to_who, text):
+    try:
+        db = {}
+        if os.path.exists(DB_FILE):
+            with open(DB_FILE, "r") as f:
+                db = json.load(f)
+        db[msg_id] = {"to": str(to_who).replace("@", "").lower(), "msg": text}
+        with open(DB_FILE, "w") as f:
+            json.dump(db, f)
+    except:
+        pass
+
+def get_msg(msg_id):
+    try:
+        if os.path.exists(DB_FILE):
+            with open(DB_FILE, "r") as f:
+                db = json.load(f)
+                return db.get(msg_id)
+    except:
+        return None
+
+# ✅ ƏVVƏLCƏ bot yaradılır
+bot = Client(
+    api_id=int(os.getenv("API_ID")),
+    api_hash=str(os.getenv("API_HASH")),
+    token=str(os.getenv("BOT_TOKEN")),
+    database_encryption_key="XeyalBotAcar123",
+    files_directory=SESSION_DIR
+)
+
+# ✅ SONRA handler-lər yazılır
 # --- INLINE HANDLER ---
-@bot.on_inline_query()  # Dəyişdirildi
+@bot.on_inline_query()
 async def secret_inline(c: Client, inline_query: types.InlineQuery):
     query = inline_query.query.strip()
     if " " not in query:
@@ -27,7 +72,7 @@ async def secret_inline(c: Client, inline_query: types.InlineQuery):
     await c.answerInlineQuery(inline_query.id, results, cache_time=1)
 
 # --- CALLBACK HANDLER ---
-@bot.on_callback_query()  # Dəyişdirildi
+@bot.on_callback_query()
 async def read_secret(c: Client, cb: types.CallbackQuery):
     msg_id = cb.payload.data.decode().split("_")[1]
     data = get_msg(msg_id)
@@ -43,7 +88,7 @@ async def read_secret(c: Client, cb: types.CallbackQuery):
         await cb.answer(f"❌ Bu mesaj yalnız {target} üçündür!", show_alert=True)
 
 # --- START HANDLER ---
-@bot.on_message()  # Dəyişdirildi
+@bot.on_message()
 async def start(c: Client, m: types.Message):
     if not m.text or not m.text.startswith("/start"):
         return
@@ -80,3 +125,5 @@ async def start(c: Client, m: types.Message):
         parse_mode="markdown",
         reply_markup=types.ReplyMarkupInlineKeyboard(keyboard)
     )
+
+bot.run()
