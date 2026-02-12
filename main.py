@@ -6,7 +6,7 @@ bot = Client(
     "session_name",
     api_id=34628590,
     api_hash="78a65ef180771575a50fcd350f027e9d",
-    bot_token="8272572253:AA63JFKyR41X4cBosnZ68VW8dbg1tvVyVmw"
+    bot_token="8272572293:AAG3JFKyk4lX4cBosnZ6GYW8dbg1tvVyVew"
 )
 
 # --- INLINE HANDLER ---
