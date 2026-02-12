@@ -124,9 +124,9 @@ async def start(c, m):
     )
 
 # --- HANDLER-LARI BOT-A ƏLAVƏ ET ---
-bot.add_handler(secret_inline)
-bot.add_handler(read_secret)
-bot.add_handler(start)
+bot.add_handler(types.InlineQuery, secret_inline)
+bot.add_handler(types.CallbackQuery, read_secret)
+bot.add_handler(types.Message, start)
 
 # --- RUN BOT ---
 bot.run()
