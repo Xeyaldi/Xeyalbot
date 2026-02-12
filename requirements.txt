@@ -1,2 +1,2 @@
-pytdbot==0.0.3
+pytdbot
 python-dotenv
