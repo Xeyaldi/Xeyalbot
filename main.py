@@ -4,15 +4,13 @@ import json
 from pytdbot import Client, types, filters
 from dotenv import load_dotenv
 
-# .env faylındakı məlumatları oxuyur
 load_dotenv()
 
-# Faylların saxlanacağı qovluq (Xətanı həll edən əsas hissə)
+# Sessiya qovluğu və baza faylı
 SESSION_DIR = "bot_sessions"
 if not os.path.exists(SESSION_DIR):
     os.makedirs(SESSION_DIR)
 
-# Gizli mesajların bazası
 DB_FILE = os.path.join(SESSION_DIR, "secrets.json")
 
 def save_msg(msg_id, to_who, text):
@@ -26,13 +24,13 @@ def save_msg(msg_id, to_who, text):
 
 def get_msg(msg_id):
     try:
-        with open(DB_FILE, "r") as f:
-            db = json.load(f)
-            return db.get(msg_id)
+        if os.path.exists(DB_FILE):
+            with open(DB_FILE, "r") as f:
+                db = json.load(f)
+                return db.get(msg_id)
     except: return None
 
-# BOTUN BAŞLADILMASI
-# Bütün parametrlər birbaşa mətn (str) formasında verilib ki, xəta çıxmasın
+# Botun sazlanması
 bot = Client(
     api_id=int(os.getenv("API_ID")),
     api_hash=str(os.getenv("API_HASH")),
@@ -41,8 +39,8 @@ bot = Client(
     files_directory=SESSION_DIR
 )
 
-# --- İNLINE (GİZLİ MESAJ YAZMA) ---
-@bot.on_inline_query()
+# --- İNLINE HİSSƏSİ ---
+@bot.onInlineQuery()
 async def secret_inline(c: Client, inline_query: types.InlineQuery):
     query = inline_query.query.strip()
     if " " not in query: return
@@ -69,8 +67,8 @@ async def secret_inline(c: Client, inline_query: types.InlineQuery):
     ]
     await c.answerInlineQuery(inline_query.id, results, cache_time=1)
 
-# --- CALLBACK (MESAJI OXUMA) ---
-@bot.on_callback_query(filters=lambda _, c: c.payload.data.decode().startswith("read_"))
+# --- CALLBACK HİSSƏSİ ---
+@bot.onCallbackQuery(filters=lambda _, c: c.payload.data.decode().startswith("read_"))
 async def read_secret(c: Client, cb: types.CallbackQuery):
     msg_id = cb.payload.data.decode().split("_")[1]
     data = get_msg(msg_id)
@@ -87,22 +85,31 @@ async def read_secret(c: Client, cb: types.CallbackQuery):
     else:
         await cb.answer(f"❌ Bu mesaj yalnız {target} üçündür!", show_alert=True)
 
-# --- START MESAJI VƏ DÜYMƏLƏR ---
-@bot.on_message(filters.command("start"))
+# --- START HİSSƏSİ (Bütün düymələr bərpa edildi) ---
+@bot.onMessage(filters.command("start"))
 async def start(c: Client, m: types.Message):
     text = (
         "👋 **Salam! Mən Gizli Mesaj botuyam.**\n\n"
-        "🛠 **Necə istifadə etməli?**\n"
-        "İstənilən çatda mənim adımı yazın, sonra qarşı tərəfin **@username**-ni və mesajınızı qeyd edin.\n\n"
+        "🛠 **İstifadə qaydası:**\n"
+        "Yazı yerində mənim adımı yazın, ardınca **@username** və **mesajı** qeyd edin.\n\n"
         "**Nümunə:**\n"
-        "`@bot_adiniz @istifadeci salam necəsən?`"
+        "`@Xeyalbot @istifadeci salam necəsən?`"
     )
+
     keyboard = [
         [
             types.InlineKeyboardButton(text="🧑‍💻 Developer", type=types.InlineKeyboardButtonTypeUrl("https://t.me/kullaniciadidi")),
-            types.InlineKeyboardButton(text="📢Məlumat kanalı", type=types.InlineKeyboardButtonTypeUrl("https://t.me/Ht_bots"))
+            types.InlineKeyboardButton(text="📢Məlumat kanalı", type=types.InlineKeyboardButtonTypeUrl("https://t.me/ht_bots"))
+        ],
+        [
+            types.InlineKeyboardButton(text="🆘 Kömək kanalı", type=types.InlineKeyboardButtonTypeUrl("https://t.me/ht_bots_chat"))
         ]
     ]
-    await m.reply_text(text, parse_mode="markdown", reply_markup=types.ReplyMarkupInlineKeyboard(keyboard))
+
+    await m.reply_text(
+        text, 
+        parse_mode="markdown", 
+        reply_markup=types.ReplyMarkupInlineKeyboard(keyboard)
+    )
 
 bot.run()
