@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Sessiya qovluğu və baza faylı
 SESSION_DIR = "bot_sessions"
 if not os.path.exists(SESSION_DIR):
     os.makedirs(SESSION_DIR)
@@ -17,10 +16,13 @@ def save_msg(msg_id, to_who, text):
     try:
         db = {}
         if os.path.exists(DB_FILE):
-            with open(DB_FILE, "r") as f: db = json.load(f)
+            with open(DB_FILE, "r") as f:
+                db = json.load(f)
         db[msg_id] = {"to": str(to_who).replace("@", "").lower(), "msg": text}
-        with open(DB_FILE, "w") as f: json.dump(db, f)
-    except: pass
+        with open(DB_FILE, "w") as f:
+            json.dump(db, f)
+    except:
+        pass
 
 def get_msg(msg_id):
     try:
@@ -28,9 +30,9 @@ def get_msg(msg_id):
             with open(DB_FILE, "r") as f:
                 db = json.load(f)
                 return db.get(msg_id)
-    except: return None
+    except:
+        return None
 
-# Botun sazlanması
 bot = Client(
     api_id=int(os.getenv("API_ID")),
     api_hash=str(os.getenv("API_HASH")),
@@ -39,11 +41,12 @@ bot = Client(
     files_directory=SESSION_DIR
 )
 
-# --- İNLINE HİSSƏSİ ---
-@bot.onInlineQuery()
+# --- INLINE ---
+@bot.on_inline_query()
 async def secret_inline(c: Client, inline_query: types.InlineQuery):
     query = inline_query.query.strip()
-    if " " not in query: return
+    if " " not in query:
+        return
 
     target, secret_text = query.split(" ", 1)
     msg_id = str(uuid.uuid4())[:8]
@@ -55,24 +58,29 @@ async def secret_inline(c: Client, inline_query: types.InlineQuery):
             title=f"🔒 Mesaj: {target}",
             description="Gizli göndərmək üçün toxunun",
             input_message_content=types.InputMessageText(
-                text=types.FormattedText(text=f"🎁 {target}, sizin üçün gizli mesaj var!")
+                text=types.FormattedText(
+                    text=f"🎁 {target}, sizin üçün gizli mesaj var!"
+                )
             ),
             reply_markup=types.ReplyMarkupInlineKeyboard([
                 [types.InlineKeyboardButton(
-                    text="👁 Mesajı Oxu", 
-                    type=types.InlineKeyboardButtonTypeCallback(f"read_{msg_id}".encode())
+                    text="👁 Mesajı Oxu",
+                    type=types.InlineKeyboardButtonTypeCallback(
+                        f"read_{msg_id}".encode()
+                    )
                 )]
             ])
         )
     ]
+
     await c.answerInlineQuery(inline_query.id, results, cache_time=1)
 
-# --- CALLBACK HİSSƏSİ ---
-@bot.onCallbackQuery(filters=lambda _, c: c.payload.data.decode().startswith("read_"))
+# --- CALLBACK ---
+@bot.on_callback_query(filters=lambda _, c: c.payload.data.decode().startswith("read_"))
 async def read_secret(c: Client, cb: types.CallbackQuery):
     msg_id = cb.payload.data.decode().split("_")[1]
     data = get_msg(msg_id)
-    
+
     if not data:
         return await cb.answer("❌ Mesaj tapılmadı.", show_alert=True)
 
@@ -85,30 +93,39 @@ async def read_secret(c: Client, cb: types.CallbackQuery):
     else:
         await cb.answer(f"❌ Bu mesaj yalnız {target} üçündür!", show_alert=True)
 
-# --- START HİSSƏSİ (Bütün düymələr bərpa edildi) ---
-@bot.onMessage(filters.command("start"))
+# --- START ---
+@bot.on_message(filters.command("start"))
 async def start(c: Client, m: types.Message):
     text = (
         "👋 **Salam! Mən Gizli Mesaj botuyam.**\n\n"
         "🛠 **İstifadə qaydası:**\n"
-        "Yazı yerində mənim adımı yazın, ardınca **@username** və **mesajı** qeyd edin.\n\n"
+        "Inline rejimdə mənim adımı yazın, sonra **@username** və **mesaj**.\n\n"
         "**Nümunə:**\n"
-        "`@Xeyalbot @istifadeci salam necəsən?`"
+        "`@BotAdı @istifadeci salam necəsən?`"
     )
 
     keyboard = [
         [
-            types.InlineKeyboardButton(text="🧑‍💻 Developer", type=types.InlineKeyboardButtonTypeUrl("https://t.me/kullaniciadidi")),
-            types.InlineKeyboardButton(text="📢Məlumat kanalı", type=types.InlineKeyboardButtonTypeUrl("https://t.me/ht_bots"))
+            types.InlineKeyboardButton(
+                text="🧑‍💻 Developer",
+                type=types.InlineKeyboardButtonTypeUrl("https://t.me/kullaniciadidi")
+            ),
+            types.InlineKeyboardButton(
+                text="📢 Məlumat kanalı",
+                type=types.InlineKeyboardButtonTypeUrl("https://t.me/ht_bots")
+            )
         ],
         [
-            types.InlineKeyboardButton(text="🆘 Kömək kanalı", type=types.InlineKeyboardButtonTypeUrl("https://t.me/ht_bots_chat"))
+            types.InlineKeyboardButton(
+                text="🆘 Kömək kanalı",
+                type=types.InlineKeyboardButtonTypeUrl("https://t.me/ht_bots_chat")
+            )
         ]
     ]
 
     await m.reply_text(
-        text, 
-        parse_mode="markdown", 
+        text,
+        parse_mode="markdown",
         reply_markup=types.ReplyMarkupInlineKeyboard(keyboard)
     )
 
