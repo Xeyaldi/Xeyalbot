@@ -1,5 +1,2 @@
-pyrogram
-tgcrypto
-python-dotenv
 pytdbot==0.0.3
 python-dotenv
