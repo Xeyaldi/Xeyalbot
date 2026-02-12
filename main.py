@@ -1,9 +1,13 @@
 import uuid
-from pyrogram import Client
-from pyrogram import types
+from pyrogram import Client, types
 
 # --- BOTUN TƏYİNİ ---
-bot = Client("session_name", api_id=39651803, api_hash="fbff5841dd52657f1be945a3a5049155", bot_token="8272572293:AAG3JFKyk4lX4cBosnZ6GYW8dbg1tvVyVew")
+bot = Client(
+    "session_name",
+    api_id=23651003,
+    api_hash="fbff5841dd52657f1be545a3a5049155",
+    bot_token="8272572253:AA63JFKyR41X4cBosnZ68VW8dbg1tvVyVmw"
+)
 
 # --- INLINE HANDLER ---
 @bot.on_inline_query()
@@ -90,3 +94,4 @@ async def start(c: Client, m: types.Message):
 
 if __name__ == "__main__":
     bot.run()
+    
