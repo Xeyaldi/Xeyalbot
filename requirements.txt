@@ -1,2 +1,2 @@
-pytdbot==0.4.1
+git+https://github.com/pytdbot/pytdbot.git@v0.4.1
 python-dotenv
