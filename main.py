@@ -43,7 +43,6 @@ bot = Client(
 )
 
 # --- INLINE HANDLER ---
-@bot.on(types.InlineQuery)
 async def secret_inline(c, inline_query):
     query = inline_query.query.strip()
     if " " not in query:
@@ -68,28 +67,24 @@ async def secret_inline(c, inline_query):
             ])
         )
     ]
-    await c.answerInlineQuery(inline_query.id, results, cache_time=1)
-
+    await bot.answerInlineQuery(inline_query.id, results, cache_time=1)
 
 # --- CALLBACK HANDLER ---
-@bot.on(types.CallbackQuery)
 async def read_secret(c, cb):
     msg_id = cb.payload.data.decode().split("_")[1]
     data = get_msg(msg_id)
     if not data:
-        return await cb.answer("❌ Mesaj tapılmadı.", show_alert=True)
+        return await bot.answerCallback(cb, "❌ Mesaj tapılmadı.", show_alert=True)
 
     target = data["to"]
     user_id = str(cb.from_user.id)
     username = (cb.from_user.username or "").lower()
     if user_id == target or username == target:
-        await cb.answer(f"🔒 Gizli Mesajınız:\n\n{data['msg']}", show_alert=True)
+        await bot.answerCallback(cb, f"🔒 Gizli Mesajınız:\n\n{data['msg']}", show_alert=True)
     else:
-        await cb.answer(f"❌ Bu mesaj yalnız {target} üçündür!", show_alert=True)
-
+        await bot.answerCallback(cb, f"❌ Bu mesaj yalnız {target} üçündür!", show_alert=True)
 
 # --- START HANDLER ---
-@bot.on(types.Message)
 async def start(c, m):
     if not m.text or not m.text.startswith("/start"):
         return
@@ -121,11 +116,17 @@ async def start(c, m):
         ]
     ]
 
-    await m.reply_text(
-        text,
+    await bot.sendMessage(
+        chat_id=m.chat.id,
+        text=text,
         parse_mode="markdown",
         reply_markup=types.ReplyMarkupInlineKeyboard(keyboard)
     )
+
+# --- HANDLER-LARI BOT-A ƏLAVƏ ET ---
+bot.add_handler(secret_inline)
+bot.add_handler(read_secret)
+bot.add_handler(start)
 
 # --- RUN BOT ---
 bot.run()
