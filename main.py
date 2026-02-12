@@ -41,8 +41,8 @@ bot = Client(
     files_directory=SESSION_DIR
 )
 
-# --- INLINE ---
-@bot.on_inline_query()
+# --- INLINE (Düzəltdik) ---
+@bot.on_update(filters.inline_query)
 async def secret_inline(c: Client, inline_query: types.InlineQuery):
     query = inline_query.query.strip()
     if " " not in query:
