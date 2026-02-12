@@ -42,8 +42,8 @@ bot = Client(
     files_directory=SESSION_DIR
 )
 
-# --- INLINE HANDLER (Səhv burada idi: on_inline_query olmalı imiş) ---
-@bot.on_inline_query()
+# --- INLINE HANDLER (add_handler istifadə edildi) ---
+@bot.add_handler(types.UpdateInlineQuery)
 async def secret_inline(c, inline_query):
     query = inline_query.query.strip()
     if " " not in query:
@@ -70,12 +70,13 @@ async def secret_inline(c, inline_query):
     ]
     await c.answerInlineQuery(inline_query.id, results, cache_time=1)
 
-
-# --- CALLBACK HANDLER (Düzəldildi) ---
-@bot.on_callback_query()
+# --- CALLBACK HANDLER (add_handler istifadə edildi) ---
+@bot.add_handler(types.UpdateCallbackQuery)
 async def read_secret(c, cb):
     try:
-        msg_id = cb.payload.data.decode().split("_")[1]
+        data_str = cb.payload.data.decode()
+        if not data_str.startswith("read_"): return
+        msg_id = data_str.split("_")[1]
     except:
         return
     data = get_msg(msg_id)
@@ -90,45 +91,17 @@ async def read_secret(c, cb):
     else:
         await cb.answer(f"❌ Bu mesaj yalnız {target} üçündür!", show_alert=True)
 
-
-# --- START HANDLER (Düzəldildi) ---
-@bot.on_message()
+# --- START HANDLER (add_handler istifadə edildi) ---
+@bot.add_handler(types.UpdateNewMessage)
 async def start(c, m):
-    if not m.text or not m.text.startswith("/start"):
+    if not m.message.content.text or not m.message.content.text.text.startswith("/start"):
         return
 
-    text = (
-        "👋 **Salam! Mən Gizli Mesaj botuyam.**\n\n"
-        "🛠 **İstifadə qaydası:**\n"
-        "Inline rejimdə mənim adımı yazın, sonra **@username** və **mesaj**.\n\n"
-        "**Nümunə:**\n"
-        "`@BotAdı @istifadeci salam necəsən?`"
-    )
-
+    text = "👋 **Salam! Mən Gizli Mesaj botuyam.**\n\nInline rejimdə mənim adımı yazın, sonra **@username** və **mesaj**."
     keyboard = [
-        [
-            types.InlineKeyboardButton(
-                text="🧑‍💻 Developer",
-                type=types.InlineKeyboardButtonTypeUrl("https://t.me/kullaniciadidi")
-            ),
-            types.InlineKeyboardButton(
-                text="📢 Məlumat kanalı",
-                type=types.InlineKeyboardButtonTypeUrl("https://t.me/ht_bots")
-            )
-        ],
-        [
-            types.InlineKeyboardButton(
-                text="🆘 Kömək qrupu",
-                type=types.InlineKeyboardButtonTypeUrl("https://t.me/ht_bots_chat")
-            )
-        ]
+        [types.InlineKeyboardButton(text="🧑‍💻 Developer", type=types.InlineKeyboardButtonTypeUrl("https://t.me/kullaniciadidi"))]
     ]
-
-    await m.reply_text(
-        text,
-        parse_mode="markdown",
-        reply_markup=types.ReplyMarkupInlineKeyboard(keyboard)
-    )
+    await c.sendText(m.message.chat_id, text, reply_markup=types.ReplyMarkupInlineKeyboard(keyboard))
 
 # --- RUN BOT ---
 bot.run()
