@@ -101,7 +101,7 @@ async def start(c, m):
         ],
         [
             types.InlineKeyboardButton(
-                text="🆘 Kömək kanalı",
+                text="🆘 Kömək qrupu",
                 type=types.InlineKeyboardButtonTypeUrl("https://t.me/ht_bots_chat")
             )
         ]
