@@ -3,7 +3,7 @@ from pyrogram import Client
 from pyrogram import types
 
 # --- BOTUN TƏYİNİ ---
-bot = Client("session_name", api_id="API_ID", api_hash="API_HASH", bot_token="TOKEN")
+bot = Client("session_name", api_id=39651803, api_hash=fbff5841dd52657f1be945a3a5049155, bot_token=8272572293:AAG3JFKyk4lX4cBosnZ6GYW8dbg1tvVyVew)
 
 # --- INLINE HANDLER ---
 @bot.on_inline_query()
