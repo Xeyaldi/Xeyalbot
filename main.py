@@ -33,7 +33,17 @@ def get_msg(msg_id):
     except:
         return None
 
-# --- HANDLER FUNKSİYALARI ---
+# --- BOT YARADILIR ---
+bot = Client(
+    api_id=int(os.getenv("API_ID")),
+    api_hash=str(os.getenv("API_HASH")),
+    token=str(os.getenv("BOT_TOKEN")),
+    database_encryption_key="XeyalBotAcar123",
+    files_directory=SESSION_DIR
+)
+
+# --- INLINE HANDLER ---
+@bot.on(types.InlineQuery)
 async def secret_inline(c, inline_query):
     query = inline_query.query.strip()
     if " " not in query:
@@ -48,16 +58,12 @@ async def secret_inline(c, inline_query):
             title=f"🔒 Mesaj: {target}",
             description="Gizli göndərmək üçün toxunun",
             input_message_content=types.InputMessageText(
-                text=types.FormattedText(
-                    text=f"🎁 {target}, sizin üçün gizli mesaj var!"
-                )
+                text=types.FormattedText(text=f"🎁 {target}, sizin üçün gizli mesaj var!")
             ),
             reply_markup=types.ReplyMarkupInlineKeyboard([
                 [types.InlineKeyboardButton(
                     text="👁 Mesajı Oxu",
-                    type=types.InlineKeyboardButtonTypeCallback(
-                        f"read_{msg_id}".encode()
-                    )
+                    type=types.InlineKeyboardButtonTypeCallback(f"read_{msg_id}".encode())
                 )]
             ])
         )
@@ -65,11 +71,14 @@ async def secret_inline(c, inline_query):
     await c.answerInlineQuery(inline_query.id, results, cache_time=1)
 
 
+# --- CALLBACK HANDLER ---
+@bot.on(types.CallbackQuery)
 async def read_secret(c, cb):
     msg_id = cb.payload.data.decode().split("_")[1]
     data = get_msg(msg_id)
     if not data:
         return await cb.answer("❌ Mesaj tapılmadı.", show_alert=True)
+
     target = data["to"]
     user_id = str(cb.from_user.id)
     username = (cb.from_user.username or "").lower()
@@ -79,8 +88,9 @@ async def read_secret(c, cb):
         await cb.answer(f"❌ Bu mesaj yalnız {target} üçündür!", show_alert=True)
 
 
+# --- START HANDLER ---
+@bot.on(types.Message)
 async def start(c, m):
-    # sadəcə /start mesajlarını işlət
     if not m.text or not m.text.startswith("/start"):
         return
 
@@ -118,17 +128,5 @@ async def start(c, m):
     )
 
 
-# --- CLIENT YARADILIR HANDLER-LAR İLƏ ---
-bot = Client(
-    api_id=int(os.getenv("API_ID")),
-    api_hash=str(os.getenv("API_HASH")),
-    token=str(os.getenv("BOT_TOKEN")),
-    inline_handlers=[secret_inline],
-    callback_handlers=[read_secret],
-    message_handlers=[start],  # filters.command silindi
-    database_encryption_key="XeyalBotAcar123",
-    files_directory=SESSION_DIR
-)
-
-# --- RUN ---
+# --- RUN BOT ---
 bot.run()
