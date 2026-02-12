@@ -41,8 +41,8 @@ bot = Client(
     files_directory=SESSION_DIR
 )
 
-# --- INLINE (Düzəltdik) ---
-@bot.on_update(filters.inline_query)
+# --- INLINE (DÜZGÜN PYTDBOT) ---
+@bot.on_inline()
 async def secret_inline(c: Client, inline_query: types.InlineQuery):
     query = inline_query.query.strip()
     if " " not in query:
@@ -117,7 +117,7 @@ async def start(c: Client, m: types.Message):
         ],
         [
             types.InlineKeyboardButton(
-                text="🆘 Kömək qrupu",
+                text="🆘 Kömək kanalı",
                 type=types.InlineKeyboardButtonTypeUrl("https://t.me/ht_bots_chat")
             )
         ]
