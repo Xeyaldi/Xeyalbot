@@ -33,7 +33,6 @@ def get_msg(msg_id):
     except:
         return None
 
-# ✅ ƏVVƏLCƏ bot yaradılır
 bot = Client(
     api_id=int(os.getenv("API_ID")),
     api_hash=str(os.getenv("API_HASH")),
@@ -42,13 +41,13 @@ bot = Client(
     files_directory=SESSION_DIR
 )
 
-# ✅ SONRA handler-lər yazılır
 # --- INLINE HANDLER ---
-@bot.on_inline_query()
-async def secret_inline(c: Client, inline_query: types.InlineQuery):
+@bot.on_update("updateNewInlineQuery")  # DÜZGÜN
+async def secret_inline(c: Client, inline_query: types.UpdateNewInlineQuery):
     query = inline_query.query.strip()
     if " " not in query:
         return
+    
     target, secret_text = query.split(" ", 1)
     msg_id = str(uuid.uuid4())[:8]
     save_msg(msg_id, target, secret_text)
@@ -59,41 +58,53 @@ async def secret_inline(c: Client, inline_query: types.InlineQuery):
             title=f"🔒 Mesaj: {target}",
             description="Gizli göndərmək üçün toxunun",
             input_message_content=types.InputMessageText(
-                text=types.FormattedText(text=f"🎁 {target}, sizin üçün gizli mesaj var!")
+                text=types.FormattedText(
+                    text=f"🎁 {target}, sizin üçün gizli mesaj var!"
+                )
             ),
-            reply_markup=types.ReplyMarkupInlineKeyboard([
+            reply_markup=types.InlineKeyboardMarkup([
                 [types.InlineKeyboardButton(
                     text="👁 Mesajı Oxu",
-                    type=types.InlineKeyboardButtonTypeCallback(f"read_{msg_id}".encode())
+                    type=types.InlineKeyboardButtonTypeCallback(
+                        data=f"read_{msg_id}".encode()
+                    )
                 )]
             ])
         )
     ]
+    
     await c.answerInlineQuery(inline_query.id, results, cache_time=1)
 
 # --- CALLBACK HANDLER ---
-@bot.on_callback_query()
-async def read_secret(c: Client, cb: types.CallbackQuery):
+@bot.on_update("updateCallbackQuery")  # DÜZGÜN
+async def read_secret(c: Client, cb: types.UpdateCallbackQuery):
     msg_id = cb.payload.data.decode().split("_")[1]
     data = get_msg(msg_id)
     if not data:
         return await cb.answer("❌ Mesaj tapılmadı.", show_alert=True)
 
     target = data["to"]
-    user_id = str(cb.from_user.id)
-    username = (cb.from_user.username or "").lower()
+    user_id = str(cb.sender_user_id)
+    # CallbackQuery-də from_user yox, sender_user_id var
+    username = (cb.sender_username or "").lower()
+    
     if user_id == target or username == target:
         await cb.answer(f"🔒 Gizli Mesajınız:\n\n{data['msg']}", show_alert=True)
     else:
         await cb.answer(f"❌ Bu mesaj yalnız {target} üçündür!", show_alert=True)
 
 # --- START HANDLER ---
-@bot.on_message()
-async def start(c: Client, m: types.Message):
-    if not m.text or not m.text.startswith("/start"):
+@bot.on_update("updateNewMessage")  # DÜZGÜN
+async def start(c: Client, m: types.UpdateNewMessage):
+    msg = m.message
+    if not msg.content or not hasattr(msg.content, 'text'):
+        return
+    
+    text_content = msg.content.text.text
+    if not text_content.startswith("/start"):
         return
 
-    text = (
+    reply_text = (
         "👋 **Salam! Mən Gizli Mesaj botuyam.**\n\n"
         "🛠 **İstifadə qaydası:**\n"
         "Inline rejimdə mənim adımı yazın, sonra **@username** və **mesaj**.\n\n"
@@ -120,10 +131,11 @@ async def start(c: Client, m: types.Message):
         ]
     ]
 
-    await m.reply_text(
-        text=text,
+    await c.sendTextMessage(
+        chat_id=msg.chat_id,
+        text=reply_text,
         parse_mode="markdown",
-        reply_markup=types.ReplyMarkupInlineKeyboard(keyboard)
+        reply_markup=types.InlineKeyboardMarkup(keyboard)
     )
 
 bot.run()
