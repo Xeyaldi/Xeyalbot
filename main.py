@@ -1,8 +1,12 @@
+import uuid
+from pyrogram import Client
+from pyrogram import types
+
 # --- BOTUN TƏYİNİ ---
 bot = Client("session_name", api_id=API_ID, api_hash="API_HASH", bot_token="TOKEN")
 
 # --- INLINE HANDLER ---
-@bot.on_inline_query()  # Dəyişdirildi
+@bot.on_inline_query()
 async def secret_inline(c: Client, inline_query: types.InlineQuery):
     query = inline_query.query.strip()
     if " " not in query:
@@ -30,7 +34,7 @@ async def secret_inline(c: Client, inline_query: types.InlineQuery):
     await c.answerInlineQuery(inline_query.id, results, cache_time=1)
 
 # --- CALLBACK HANDLER ---
-@bot.on_callback_query()  # Dəyişdirildi
+@bot.on_callback_query()
 async def read_secret(c: Client, cb: types.CallbackQuery):
     msg_id = cb.payload.data.decode().split("_")[1]
     data = get_msg(msg_id)
@@ -46,7 +50,7 @@ async def read_secret(c: Client, cb: types.CallbackQuery):
         await cb.answer(f"❌ Bu mesaj yalnız {target} üçündür!", show_alert=True)
 
 # --- START HANDLER ---
-@bot.on_message()  # Dəyişdirildi
+@bot.on_message()
 async def start(c: Client, m: types.Message):
     if not m.text or not m.text.startswith("/start"):
         return
@@ -82,4 +86,7 @@ async def start(c: Client, m: types.Message):
         text=text,
         parse_mode="markdown",
         reply_markup=types.ReplyMarkupInlineKeyboard(keyboard)
-    )   
+    )
+
+if __name__ == "__main__":
+    bot.run()
