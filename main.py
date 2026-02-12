@@ -94,4 +94,3 @@ async def start(c: Client, m: types.Message):
 
 if __name__ == "__main__":
     bot.run()
-    
