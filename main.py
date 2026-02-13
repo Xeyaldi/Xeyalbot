@@ -97,7 +97,7 @@ async def start(c: Client, m: types.Message):
 
     keyboard = [
         [
-            types.InlineKeyboardButton("🧑‍💻 Developer", url="https://t.me/kullaniciadidi"),
+            types.InlineKeyboardButton("🧑‍💻 Botun sahibi", url="https://t.me/kullaniciadidi"),
             types.InlineKeyboardButton("📢 Məlumat kanalı", url="https://t.me/ht_bots")
         ],
         [
