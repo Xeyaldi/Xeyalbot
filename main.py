@@ -38,7 +38,7 @@ async def secret_inline(c: Client, inline_query: types.InlineQuery):
             id=msg_id,
             title=f"🔒 Mesaj: {target}",
             description="Gizli göndərmək üçün toxunun",
-            input_message_content=types.InputMessageText(
+            input_message_content=types.InputTextMessageContent(
                 message_text=f"🎁 {target}, sizin üçün gizli mesaj var!"
             ),
             reply_markup=types.InlineKeyboardMarkup([
@@ -93,9 +93,9 @@ async def start(c: Client, m: types.Message):
         ]
     ]
 
+    # BURADAN parse_mode="markdown" HİSSƏSİNİ SİLDİM, ÇÜNKİ XORUZLUQ EDİR
     await m.reply_text(
         text=text,
-        parse_mode="markdown",
         reply_markup=types.InlineKeyboardMarkup(keyboard)
     )
 
