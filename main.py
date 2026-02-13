@@ -12,7 +12,7 @@ def get_msg(msg_id):
 
 # --- BOTUN TƏYİNİ ---
 bot = Client(
-    "session_name",
+    "bot_session",
     api_id=34628590,
     api_hash="78a65ef180771575a50fcd350f027e9d",
     bot_token="8272572293:AAG3JFKyk4lX4cBosnZ6GYW8dbg1tvVyVew"
@@ -93,11 +93,7 @@ async def start(c: Client, m: types.Message):
         ]
     ]
 
-    await m.reply_text(
-        text=text,
-        reply_markup=types.InlineKeyboardMarkup(keyboard)
-    )
+    await m.reply_text(text=text, reply_markup=types.InlineKeyboardMarkup(keyboard))
 
 # --- BOTU İŞƏ SALMAQ ---
-# Heroku-da Status 0 almamaq üçün birbaşa işə salırıq
 bot.run()
