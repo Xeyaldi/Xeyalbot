@@ -1,7 +1,7 @@
 import uuid
 from pyrogram import Client, filters, types
 
-# --- MƏLUMAT BAZASI (Müvəqqəti) ---
+# --- MƏLUMAT BAZASI ---
 db = {}
 
 def save_msg(msg_id, target, msg):
@@ -80,7 +80,7 @@ async def start(c: Client, m: types.Message):
         "🛠 **İstifadə qaydası:**\n"
         "Inline rejimdə mənim adımı yazın, sonra **@username** və **mesaj**.\n\n"
         "**Nümunə:**\n"
-        "`@BotAdı @istifadeci salam necəsən?`"
+        "`@Botun_Usernamesi @istifadeci salam necəsən?`"
     )
 
     keyboard = [
@@ -93,11 +93,11 @@ async def start(c: Client, m: types.Message):
         ]
     ]
 
-    # BURADAN parse_mode="markdown" HİSSƏSİNİ SİLDİM, ÇÜNKİ XORUZLUQ EDİR
     await m.reply_text(
         text=text,
         reply_markup=types.InlineKeyboardMarkup(keyboard)
     )
 
-if __name__ == "__main__":
-    bot.run()
+# --- BOTU İŞƏ SALMAQ ---
+# Heroku-da Status 0 almamaq üçün birbaşa işə salırıq
+bot.run()
