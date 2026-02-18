@@ -4,9 +4,8 @@ from pyrogram import Client, filters, types
 # --- MƏLUMAT BAZASI ---
 db = {}
 
-def save_msg(msg_id, sender_id, target, msg):
-    # Kimin göndərdiyini (sender_id) də artıq saxlayırıq
-    db[msg_id] = {"from": sender_id, "to": target, "msg": msg, "read": False}
+def save_msg(msg_id, sender_id, target, msg, sender_info):
+    db[msg_id] = {"from": sender_id, "sender_info": sender_info, "to": target, "msg": msg, "read": False}
 
 bot = Client(
     "bot_session",
@@ -22,17 +21,19 @@ async def secret_inline(c: Client, inline_query: types.InlineQuery):
     if not query:
         return
 
-    # "Anyone" (hər kəsə) məntiqi: Əgər boşluq yoxdursa, hər kəs üçün sayılır
     if " " in query:
         target, secret_text = query.split(" ", 1)
     else:
         target = "anyone"
         secret_text = query
 
-    msg_id = str(uuid.uuid4())[:8]
-    save_msg(msg_id, inline_query.from_user.id, target, secret_text)
+    u = inline_query.from_user
+    # Burada @username, o yoxdursa birbaşa ID, o da yoxdursa "Anonim" təyin olunur
+    sender_info = f"@{u.username}" if u.username else (str(u.id) if u.id else "Anonim")
 
-    # Başlıq hər kəsə və ya şəxsə görə dəyişir
+    msg_id = str(uuid.uuid4())[:8]
+    save_msg(msg_id, u.id, target, secret_text, sender_info)
+
     title_text = "🔒 Hər kəs üçün gizli mesaj" if target == "anyone" else f"🔒 Mesaj: {target}"
     msg_text = "🎁 Sizin üçün gizli mesaj var!" if target == "anyone" else f"🎁 {target}, sizin üçün gizli mesaj var!"
 
@@ -62,15 +63,15 @@ async def read_secret(c: Client, cb: types.CallbackQuery):
         return await cb.answer("❌ Mesaj tapılmadı.", show_alert=True)
 
     sender_id = data["from"]
+    sender_info = data.get("sender_info", "Anonim")
     target = data["to"].replace("@", "").lower()
     user_id = cb.from_user.id
     username = (cb.from_user.username or "").lower()
 
-    # OKUMA ŞƏRTİ: Hər kəsədirsə YA DA yazan adamdırsa YA DA hədəf şəxsdirsə
     if data["to"] == "anyone" or user_id == sender_id or str(user_id) == target or username == target:
-        await cb.answer(f"🔒 Gizli Mesajınız:\n\n{data['msg']}", show_alert=True)
+        # Mesaj və yanında sadəcə istifadəçi adı və ya rəqəmlə ID
+        await cb.answer(f"🔒 Mesaj: {data['msg']} ({sender_info})", show_alert=True)
         
-        # Əgər hədəf oxudusa, mətni "Oxundu" olaraq dəyişək
         if user_id != sender_id and not data["read"]:
             data["read"] = True
             try:
@@ -86,7 +87,6 @@ async def read_secret(c: Client, cb: types.CallbackQuery):
 # --- START HANDLER ---
 @bot.on_message(filters.command("start"))
 async def start(c: Client, m: types.Message):
-    # Sənin əvvəlki düymələrin və mətnin olduğu kimi qaldı
     text = (
         "👋 **Salam! Mən Gizli Mesaj botuyam.**\n\n"
         "🛠 **İstifadə qaydası:**\n"
